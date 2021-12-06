@@ -4,14 +4,14 @@ import * as Gamedig from 'gamedig';
 const stackArn = process.env.STACK_ARN as string;
 const clusterArn = process.env.CLUSTER_ARN as string;
 const serverHost = process.env.SERVER_HOST as string;
-const awsRegion = process.env.AWS_REGION as string;
+const region = process.env.REGION as string;
 
 const cf = new AWS.CloudFormation({
-    region: awsRegion,
+    region: region,
 });
 
 const ecs = new AWS.ECS({
-    region: awsRegion,
+    region: region,
 })
 
 async function updateServerState(state) {

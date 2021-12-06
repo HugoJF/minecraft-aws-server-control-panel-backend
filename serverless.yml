@@ -12,10 +12,13 @@ provider:
   name: aws
   runtime: nodejs12.x
   memorySize: 256
+  region: sa-east-1
   lambdaHashingVersion: '20201221'
+  httpApi:
+    cors: true
   environment:
     SERVER_HOST: ${env:SERVER_HOST}
-    AWS_REGION: ${env:AWS_REGION}
+    REGION: ${env:REGION}
   iam:
     role:
       statements:
@@ -49,3 +52,4 @@ functions:
       - httpApi:
           path: /off
           method: post
+          cors: true

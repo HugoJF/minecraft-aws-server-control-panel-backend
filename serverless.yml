@@ -11,12 +11,14 @@ plugins:
 provider:
   name: aws
   runtime: nodejs12.x
-  memorySize: 256
+  memorySize: 128
   region: sa-east-1
   lambdaHashingVersion: '20201221'
   httpApi:
     cors: true
   environment:
+    STACK_ARN: ${env:STACK_ARN}
+    CLUSTER_ARN: ${env:CLUSTER_ARN}
     SERVER_HOST: ${env:SERVER_HOST}
     REGION: ${env:REGION}
   iam:

@@ -1,0 +1,14 @@
+{
+  "name": "minecraft-server-control-panel-backend",
+  "version": "1.0.0",
+  "dependencies": {
+    "gamedig": "^3.0.7"
+  },
+  "devDependencies": {
+    "@types/aws-sdk": "^2.7.0",
+    "aws-sdk": "^2.1043.0",
+    "serverless-offline": "^8.3.1",
+    "serverless-plugin-typescript": "^2.1.0",
+    "typescript": "^4.5.2"
+  }
+}

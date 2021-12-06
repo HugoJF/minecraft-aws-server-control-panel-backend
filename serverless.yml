@@ -1,0 +1,51 @@
+service: minecraft-server-control-panel-backend
+frameworkVersion: '2 || 3'
+
+useDotenv: true
+unresolvedVariablesNotificationMode: error
+
+plugins:
+  - serverless-plugin-typescript
+  - serverless-offline
+
+provider:
+  name: aws
+  runtime: nodejs12.x
+  memorySize: 256
+  lambdaHashingVersion: '20201221'
+  environment:
+    SERVER_HOST: ${env:SERVER_HOST}
+    AWS_REGION: ${env:AWS_REGION}
+  iam:
+    role:
+      statements:
+        - Effect: 'Allow'
+          Action:
+            - ecs:DescribeClusters
+          Resource: ${env:CLUSTER_ARN}
+        - Effect: 'Allow'
+          Action:
+            - cloudformation:DescribeStacks
+            - cloudformation:GetTemplate
+            - cloudformation:UpdateStack
+          Resource: ${env:STACK_ARN}
+
+functions:
+  status:
+    handler: handler.status
+    events:
+      - httpApi:
+          path: /status
+          method: get
+  on:
+    handler: handler.on
+    events:
+      - httpApi:
+          path: /on
+          method: post
+  off:
+    handler: handler.off
+    events:
+      - httpApi:
+          path: /off
+          method: post

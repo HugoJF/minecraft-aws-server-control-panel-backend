@@ -19,6 +19,7 @@ provider:
   environment:
     STACK_ARN: ${env:STACK_ARN}
     CLUSTER_ARN: ${env:CLUSTER_ARN}
+    ROLE_ARN: ${env:ROLE_ARN}
     SERVER_HOST: ${env:SERVER_HOST}
     REGION: ${env:REGION}
   iam:
@@ -34,6 +35,10 @@ provider:
             - cloudformation:GetTemplate
             - cloudformation:UpdateStack
           Resource: ${env:STACK_ARN}
+        - Effect: 'Allow'
+          Action:
+            - iam:PassRole
+          Resource: ${env:ROLE_ARN}
 
 functions:
   status:
@@ -54,4 +59,3 @@ functions:
       - httpApi:
           path: /off
           method: post
-          cors: true

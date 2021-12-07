@@ -3,6 +3,7 @@ import * as Gamedig from 'gamedig';
 
 const stackArn = process.env.STACK_ARN as string;
 const clusterArn = process.env.CLUSTER_ARN as string;
+const roleArn = process.env.ROLE_ARN as string;
 const serverHost = process.env.SERVER_HOST as string;
 const region = process.env.REGION as string;
 
@@ -38,6 +39,7 @@ async function updateServerState(state) {
         StackName: stackArn,
         TemplateBody: template.TemplateBody,
         Capabilities: ['CAPABILITY_IAM'],
+        RoleARN: roleArn,
         Parameters: [
             ...constantParameters, {
                 ParameterKey: 'ServerState',

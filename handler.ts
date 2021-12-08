@@ -6,12 +6,17 @@ const clusterArn = process.env.CLUSTER_ARN as string;
 const roleArn = process.env.ROLE_ARN as string;
 const serverHost = process.env.SERVER_HOST as string;
 const region = process.env.REGION as string;
+const tableName = process.env.TABLE_NAME as string;
 
 const cf = new AWS.CloudFormation({
     region: region,
 });
 
 const ecs = new AWS.ECS({
+    region: region,
+})
+
+const ddb = new AWS.DynamoDB.DocumentClient({
     region: region,
 })
 
@@ -116,3 +121,81 @@ module.exports.status = async () => {
         }),
     };
 };
+
+module.exports.afk = async () => {
+    // request player count
+    const query = await Gamedig.query({
+        type: 'minecraft',
+        host: serverHost,
+        socketTimeout: 500,
+        attemptTimeout: 10000,
+    }).catch(() => null)
+
+    const playerCount = query?.players?.length ?? null
+
+    // if server is offline, give up
+    if (playerCount === null) {
+        console.log('Server is offline')
+
+        return {statusCode: 200}
+    }
+
+    // if >0 delete entry
+    if (playerCount > 0) {
+        console.log(`Server is populated with ${playerCount} players, ignoring...`)
+
+        await ddb.delete({
+            TableName: tableName,
+            Key: {
+                key: 'offline-since',
+            }
+        }).promise()
+
+        return {statusCode: 204}
+    }
+
+    // if 0, check if entry exists
+    const entry = await ddb.get({
+        TableName: tableName,
+        Key: {
+            key: 'offline-since'
+        },
+    }).promise()
+
+    if (!entry.Item) {
+        console.log(`DynamoDB has no entries, registering it`)
+
+        await ddb.put({
+            TableName: tableName,
+            Item: {
+                key: 'offline-since',
+                value: (new Date).toISOString(),
+            }
+        }).promise()
+
+        return {statusCode: 204};
+    }
+
+    const offlineSince = entry.Item['value'];
+    const offline = new Date(offlineSince);
+    const now = new Date;
+    const delta = now.getTime() - offline.getTime();
+
+    console.log('Server is offline for', delta / 1000 / 60, 'minutes')
+
+    // if entry exists check if time is done
+    if (delta > 15 * 60 * 1000) {
+        await updateServerState('Stopped')
+
+        await ddb.delete({
+            TableName: tableName,
+            Key: {
+                key: 'offline-since',
+            }
+        }).promise()
+
+        return {statusCode: 204}
+    }
+
+    return {statusCode: 204};
+}

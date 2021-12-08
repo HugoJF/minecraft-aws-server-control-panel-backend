@@ -22,9 +22,22 @@ provider:
     ROLE_ARN: ${env:ROLE_ARN}
     SERVER_HOST: ${env:SERVER_HOST}
     REGION: ${env:REGION}
+    TABLE_NAME: ${env:TABLE_NAME}
   iam:
     role:
       statements:
+        - Effect: Allow
+          Resource:
+            Fn::GetAtt:
+              - dynamodbTable
+              - Arn
+          Action:
+            - dynamodb:Query
+            - dynamodb:Scan
+            - dynamodb:GetItem
+            - dynamodb:PutItem
+            - dynamodb:UpdateItem
+            - dynamodb:DeleteItem
         - Effect: 'Allow'
           Action:
             - ecs:DescribeClusters
@@ -59,3 +72,25 @@ functions:
       - httpApi:
           path: /off
           method: post
+  afk:
+    handler: handler.afk
+    events:
+      - httpApi:
+          path: /afk
+          method: post
+      - schedule:
+          rate: rate(5 minutes)
+
+resources: # CloudFormation template syntax
+  Resources:
+    dynamodbTable:
+      Type: AWS::DynamoDB::Table
+      Properties:
+        TableName: ${env:TABLE_NAME}
+        BillingMode: PAY_PER_REQUEST
+        AttributeDefinitions:
+          - AttributeName: key
+            AttributeType: S
+        KeySchema:
+          - AttributeName: key
+            KeyType: HASH
